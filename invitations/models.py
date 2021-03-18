@@ -51,7 +51,7 @@ class Invitation(AbstractBaseInvitation):
             'email': self.email,
             'key': self.key,
             'inviter': self.inviter,
-            'inviter_organization': self.inviter.inviter_organization,
+            'inviter_organization': self.inviter_organization,
         })
 
         email_template = 'invitations/email/email_invite'
