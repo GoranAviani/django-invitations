@@ -12,16 +12,17 @@ Invitation = get_invitation_model()
 class CleanEmailMixin(object):
 
     def validate_invitation(self, email):
-        if Invitation.objects.all_valid().filter(
-                email__iexact=email, accepted=False):
-            raise AlreadyInvited
-        elif Invitation.objects.filter(
-                email__iexact=email, accepted=True):
-            raise AlreadyAccepted
-        elif get_user_model().objects.filter(email__iexact=email):
-            raise UserRegisteredEmail
-        else:
-            return True
+       return True
+        #if Invitation.objects.all_valid().filter(
+        #        email__iexact=email, accepted=False):
+        #    raise AlreadyInvited
+        #elif Invitation.objects.filter(
+        #        email__iexact=email, accepted=True):
+        #    raise AlreadyAccepted
+        #elif get_user_model().objects.filter(email__iexact=email):
+        #    raise UserRegisteredEmail
+        #else:
+        #    return True
 
     def clean_email(self):
         email = self.cleaned_data["email"]
