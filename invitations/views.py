@@ -32,18 +32,40 @@ class SendInvite(FormView):
 
     def form_valid(self, form):
         email = form.cleaned_data["email"]
+        from django.contrib.auth import get_user_model
 
-        try:
-            invite = form.save(email)
-            invite.inviter = self.request.user
+        if not get_user_model().objects.filter(email__iexact=email):
+        #ga
             try:
-                invite.inviter_organization = self.request.user.company.name
+                invite = form.save(email)
+                invite.inviter = self.request.user
+                try:
+                    invite.inviter_organization = self.request.user.company.name
+                except:
+                    pass
+                invite.save()
+                invite.send_invitation(self.request)
             except:
-                pass
-            invite.save()
-            invite.send_invitation(self.request)
-        except Exception:
-            return self.form_invalid(form)
+                #ga update existing user
+                invite = Invitation.objects.get(email=email)
+                #invite = Invitation.objects.filter(email=email)
+                invite.inviter = self.request.user
+                invite.inviter_organization = self.request.user.company.name
+                invite.save()
+                invite.send_invitation(self.request)
+        else:
+            #ako user je registriran
+            from invite_existing_users.models import ExistingUserInvites
+
+            inviter_id = self.request.user.id
+            inviter = get_user_model().objects.get(id=inviter_id)
+            invitee = get_user_model().objects.get(email__iexact=email)
+
+            ExistingUserInvites.create(self, inviter, invitee)
+
+#ga
+        ###except Exception:
+        ###    return self.form_invalid(form)
         #
         #return self.render_to_response(
         #    self.get_context_data(
