@@ -46,7 +46,9 @@ class AppSettings(object):
     @property
     def SIGNUP_REDIRECT(self):
         """ Where to redirect on email confirm of invite """
-        return self._setting('SIGNUP_REDIRECT', 'account_signup')
+        #return self._setting('SIGNUP_REDIRECT', 'account_signup')
+        return self._setting('SIGNUP_REDIRECT', settings.SIGNUP_REDIRECT)
+
 
     @property
     def LOGIN_REDIRECT(self):
