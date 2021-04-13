@@ -18,6 +18,12 @@ from .forms import CleanEmailMixin
 from .signals import invite_accepted
 from .utils import get_invitation_model, get_invite_form
 
+try:
+    from organization.models import Company
+    from django.shortcuts import render, redirect
+except:
+    print("no django, no company model")
+
 Invitation = get_invitation_model()
 InviteForm = get_invite_form()
 
@@ -127,6 +133,13 @@ class SendJSONInvite(View):
             json.dumps(response),
             status=status_code, content_type='application/json')
 
+def check_empty_seats(key):
+    invite = Invitation.objects.get(key=key)
+    comp = Company.objects.get(name=invite.inviter.company.name)
+    if comp.taken_seats < comp.seats:
+        return True
+    else:
+        return False
 
 class AcceptInvite(SingleObjectMixin, View):
     form_class = InviteForm
@@ -135,10 +148,22 @@ class AcceptInvite(SingleObjectMixin, View):
         return app_settings.SIGNUP_REDIRECT
 
     def get(self, *args, **kwargs):
-        if app_settings.CONFIRM_INVITE_ON_GET:
-            return self.post(*args, **kwargs)
+        try:
+            key = kwargs['key']
+        except KeyError:
+            print('MISSING KEY IN ACCEPTINVITE GET METHOD')
+
+        empty_seats = check_empty_seats(key)
+        if empty_seats:
+            if app_settings.CONFIRM_INVITE_ON_GET:
+                return self.post(*args, **kwargs)
+            else:
+                raise Http404()
         else:
-            raise Http404()
+            request = args[0]
+            return render(request,
+                          "organization/no_empty_seats.html",
+                          )
 
     def post(self, *args, **kwargs):
         self.object = invitation = self.get_object()
