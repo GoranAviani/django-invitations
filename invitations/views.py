@@ -133,10 +133,9 @@ class SendJSONInvite(View):
             json.dumps(response),
             status=status_code, content_type='application/json')
 
-def check_empty_seats(key):
-    invite = Invitation.objects.get(key=key)
-    comp = Company.objects.get(name=invite.inviter.company.name)
-    if comp.taken_seats < comp.seats:
+def check_empty_seats(company):
+
+    if company.taken_seats < company.seats:
         return True
     else:
         return False
@@ -153,7 +152,9 @@ class AcceptInvite(SingleObjectMixin, View):
         except KeyError:
             print('MISSING KEY IN ACCEPTINVITE GET METHOD')
 
-        empty_seats = check_empty_seats(key)
+        invite = Invitation.objects.get(key=key)
+        company = Company.objects.get(name=invite.inviter.company.name)
+        empty_seats = check_empty_seats(company)
         if empty_seats:
             if app_settings.CONFIRM_INVITE_ON_GET:
                 return self.post(*args, **kwargs)
@@ -161,8 +162,12 @@ class AcceptInvite(SingleObjectMixin, View):
                 raise Http404()
         else:
             request = args[0]
+            display_info = {'inviter_email':invite.inviter.email, 'company_name': company.name}
             return render(request,
                           "invitations/no_empty_seats.html",
+                          {
+                              "display_info": display_info
+                          },
                           )
 
     def post(self, *args, **kwargs):
