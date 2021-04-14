@@ -162,7 +162,7 @@ class AcceptInvite(SingleObjectMixin, View):
         else:
             request = args[0]
             return render(request,
-                          "organization/no_empty_seats.html",
+                          "invitations/no_empty_seats.html",
                           )
 
     def post(self, *args, **kwargs):
