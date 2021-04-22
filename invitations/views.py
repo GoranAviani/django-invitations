@@ -34,18 +34,20 @@ class SendInvite(FormView):
         email = form.cleaned_data["email"]
         from django.contrib.auth import get_user_model
 
-        # prvo pogledat jel vec invitean, al za mail moze bit invitean 100 puta, zasto ne
-        # 2 #znaci pogledat jel postoji interna invitacija koja penda, ako je blokiraj invite da se ne spama
-        # 1 #blokiraj mogucnist invitea ako je korisnik reg i u (reg provjera se prva cini)
-        # i u istoj organizaciji
-        # SUMA: sve za internal invite (else):
-        #  znaci prvo pogledaj jel korisnik regan (radimo to s if else) ako je pogledaj
-        # jel u istoj org (i odbaci
-        # novi invite) ako nije u istoj org pogledaj jel taj korisnik vec invitean u tu istu org
-        #  al nije odgovorija
+        #prvo pogledat jel vec invitean, al za mail moze bit invitean 100 puta, zasto ne
+       #2 #znaci pogledat jel postoji interna invitacija koja penda, ako je blokiraj invite da se ne spama
+       #1 #blokiraj mogucnist invitea ako je korisnik reg i u (reg provjera se prva cini)
+       # i u istoj organizaciji
+       #SUMA: sve za internal invite (else):
+       #  znaci prvo pogledaj jel korisnik regan (radimo to s if else) ako je pogledaj 
+       # jel u istoj org (i odbaci 
+       # novi invite) ako nije u istoj org pogledaj jel taj korisnik vec invitean u tu istu org
+       #  al nije odgovorija
+       
+
 
         if not get_user_model().objects.filter(email__iexact=email):
-            # ga
+        #ga
             try:
                 invite = form.save(email)
                 invite.inviter = self.request.user
@@ -56,18 +58,18 @@ class SendInvite(FormView):
                 invite.save()
                 invite.send_invitation(self.request)
             except:
-                # ga update existing user
+                #ga update existing user
                 invite = Invitation.objects.get(email=email)
-                # invite = Invitation.objects.filter(email=email)
+                #invite = Invitation.objects.filter(email=email)
                 invite.inviter = self.request.user
                 invite.inviter_organization = self.request.user.company.name
                 invite.save()
                 invite.send_invitation(self.request)
-
-            return self.render_to_response({'form': form, 'success_message': '%s has been invited via email.' % email
-                                            })
+            
+            return self.render_to_response({'form': form,'success_message': '%s has been invited via email.' % email
+        })
         else:
-            # ako user je registriran
+            #ako user je registriran
             from invite_existing_users.models import ExistingUserInvites
             inviter_id = self.request.user.id
             inviter = get_user_model().objects.get(id=inviter_id)
@@ -75,40 +77,43 @@ class SendInvite(FormView):
             if invitee.company == inviter.company:
                 print("aaaaa1")
                 return self.render_to_response({
-                    'form': form,
-                    'success_message': f'{invitee.email} cant be invited becase he is already a member of {inviter.company}'
-                })
+            'form': form,
+            'success_message': f'{invitee.email} cant be invited becase he is already a member of {inviter.company}'
+        })
             else:
                 print("aaaa")
+                
 
-                test = ExistingUserInvites.objects.filter(
-                    invitee=invitee)  # , invitee__company=inviter__company, answer=False)
+                
+                test = ExistingUserInvites.objects.filter(invitee=invitee)#, invitee__company=inviter__company, answer=False)
                 for x in test:
-                    if x.inviter.company == inviter.company and x.answer == False:
+                    if x.inviter.company==inviter.company and x.answer==False:
                         return self.render_to_response({
-                            'form': form,
-                            'success_message': '%s has already been invited but has yet not accepted or declined the invite.' % email
-                        })
+                    'form': form,
+                    'success_message': '%s has already been invited but has yet not accepted or declined the invite.' % email
+                })
+                
+                
 
             ExistingUserInvites.create(self, inviter, invitee)
             return self.render_to_response({
-                'form': form,
-                'success_message': '%s has been invited via invitation inbox.' % email
-            })
+            'form': form,
+            'success_message': '%s has been invited via invitation inbox.' % email
+        })
 
-    # ga
-    ###except Exception:
-    ###    return self.form_invalid(form)
-    #
-    # return self.render_to_response(
-    #    self.get_context_data(
-    #        success_message=_('%(email)s has been invited') % {
-    #            "email": email}))
+#ga
+        ###except Exception:
+        ###    return self.form_invalid(form)
+        #
+        #return self.render_to_response(
+        #    self.get_context_data(
+        #        success_message=_('%(email)s has been invited') % {
+        #            "email": email}))
 
-    # return self.render_to_response({
-    #     'form': form,
-    #     'success_message': '%s has been invited' % email
-    # })
+       # return self.render_to_response({
+       #     'form': form,
+       #     'success_message': '%s has been invited' % email
+       # })
 
     def form_invalid(self, form):
         return self.render_to_response(self.get_context_data(form=form))
@@ -180,9 +185,9 @@ class AcceptInvite(SingleObjectMixin, View):
         # is an error. # Error conditions are: no key, expired key or
         # previously accepted key.
         if app_settings.GONE_ON_ACCEPT_ERROR and \
-            (not invitation or
-             (invitation and (invitation.accepted or
-                              invitation.key_expired()))):
+                (not invitation or
+                 (invitation and (invitation.accepted or
+                                  invitation.key_expired()))):
             return HttpResponse(status=410)
 
         # No invitation was found.
