@@ -49,6 +49,11 @@ class AppSettings(object):
         #return self._setting('SIGNUP_REDIRECT', 'account_signup')
         return self._setting('SIGNUP_REDIRECT', settings.SIGNUP_REDIRECT)
 
+    @property
+    def PROJECT_INVITE_SIGNUP_REDIRECT(self):
+        """ Where to redirect on email confirm of invite """
+        #return self._setting('SIGNUP_REDIRECT', 'account_signup')
+        return self._setting('PROJECT_INVITE_SIGNUP_REDIRECT', settings.PROJECT_INVITE_SIGNUP_REDIRECT)
 
     @property
     def LOGIN_REDIRECT(self):
@@ -83,8 +88,19 @@ class AppSettings(object):
         return self._setting("INVITATION_MODEL", "invitations.Invitation")
 
     @property
+    def PROJECT_INVITATION_MODEL(self):
+        """
+        Subject-line prefix to use for Invitation model setup
+        """
+        return self._setting("PROJECT_INVITATION_MODEL", "invitations.ProjectInvitation")
+
+    @property
     def INVITE_FORM(self):
         return self._setting("INVITE_FORM", "invitations.forms.InviteForm")
+
+    @property
+    def PROJECT_INVITE_FORM(self):
+        return self._setting("PROJECT_INVITE_FORM", "invitations.forms.ProjectInviteForm")
 
     @property
     def ADMIN_ADD_FORM(self):
