@@ -4,9 +4,11 @@ from django.utils.translation import ugettext_lazy as _
 
 from .adapters import get_invitations_adapter
 from .exceptions import AlreadyAccepted, AlreadyInvited, UserRegisteredEmail
-from .utils import get_invitation_model
+from .utils import get_invitation_model, get_project_invitation_model
 
 Invitation = get_invitation_model()
+ProjectInvitation = get_project_invitation_model()
+
 
 
 class CleanEmailMixin(object):
@@ -44,6 +46,42 @@ class CleanEmailMixin(object):
         except(UserRegisteredEmail):
             raise forms.ValidationError(errors["email_in_use"])
         return email
+
+class ProjectInviteForm(forms.Form, CleanEmailMixin):
+
+    email = forms.EmailField(
+        label=_("E-mail"),
+        required=True,
+        widget=forms.TextInput(
+            attrs={"type": "email", "size": "30"}), initial="")
+
+    #def save(self, email):
+    #    return ProjectInvitation.create(email=email)
+
+    def save(email):
+        return ProjectInvitation.create(email=email)
+
+
+class ProjectInvitationAdminAddForm(forms.ModelForm, CleanEmailMixin):
+    email = forms.EmailField(
+        label=_("E-mail"),
+        required=True,
+        widget=forms.TextInput(attrs={"type": "email", "size": "30"}))
+
+    def save(self, *args, **kwargs):
+        cleaned_data = super(InvitationAdminAddForm, self).clean()
+        email = cleaned_data.get("email")
+        params = {'email': email}
+        if cleaned_data.get("inviter"):
+            params['inviter'] = cleaned_data.get("inviter")
+        instance = ProjectInvitation.create(**params)
+        instance.send_invitation(self.request)
+        super(ProjectInvitationAdminAddForm, self).save(*args, **kwargs)
+        return instance
+
+    class Meta:
+        model = ProjectInvitation
+        fields = ("email", "inviter")
 
 
 class InviteForm(forms.Form, CleanEmailMixin):
