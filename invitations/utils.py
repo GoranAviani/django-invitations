@@ -19,6 +19,9 @@ def import_attribute(path):
 def get_invite_form():
     return import_attribute(app_settings.INVITE_FORM)
 
+def get_project_invite_form():
+    return import_attribute(app_settings.PROJECT_INVITE_FORM)
+
 
 def get_invitation_admin_add_form():
     return import_attribute(app_settings.ADMIN_ADD_FORM)
@@ -43,4 +46,21 @@ def get_invitation_model():
         raise ImproperlyConfigured(
             "path refers to model '%s' that\
              has not been installed" % app_settings.INVITATION_MODEL
+        )
+
+def get_project_invitation_model():
+    """
+    Returns the Invitation model that is active in this project.
+    """
+    path = app_settings.PROJECT_INVITATION_MODEL
+    try:
+        return django_apps.get_model(path)
+    except ValueError:
+        raise ImproperlyConfigured(
+            "path must be of the form 'app_label.model_name'"
+        )
+    except LookupError:
+        raise ImproperlyConfigured(
+            "path refers to model '%s' that\
+             has not been installed" % app_settings.PROJECT_INVITATION_MODEL
         )
