@@ -23,56 +23,6 @@ ProjectInvitation = get_project_invitation_model()
 InviteForm = get_invite_form()
 ProjectInviteForm = get_project_invite_form()
 
-
-# TODO not used->
-class SendProjectInvite22(FormView):
-    template_name = 'invitations/forms/project_invite.html'
-    form_class = ProjectInviteForm
-
-    ##slug_url_kwarg = 'id'
-
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        return super(SendProjectInvite, self).dispatch(request, *args, **kwargs)
-
-    def form_valid(self, form):
-        # from project.models import Project
-        # project = Project.objects.get(id=self.kwargs['id'])
-        email = form.cleaned_data["email"]
-        from django.contrib.auth import get_user_model
-
-        # ako user nije registriran u sistem
-        if not get_user_model().objects.filter(email__iexact=email):
-            # ga
-            try:
-                invite = form.save(email)
-                invite.inviter = self.request.user
-                try:
-                    invite.inviter_organization = None
-                except:
-                    pass
-                invite.save()
-                invite.send_invitation(self.request)
-            except:
-                # ga update existing user
-                invite = ProjectInvitation.objects.get(email=email)
-                # invite = Invitation.objects.filter(email=email)
-                invite.inviter = self.request.user
-                invite.inviter_organization = None
-                invite.save()
-                invite.send_invitation(self.request)
-
-            return self.render_to_response({'form': form, 'success_message': '%s has been invited via email.' % email
-                                            })
-        else:
-            # ako user je registriran
-            from project.views import SubscribeToProject
-            SubscribeToProject(request, id)
-
-    def form_invalid(self, form):
-        return self.render_to_response(self.get_context_data(form=form))
-
-
 class SendInvite(FormView):
     template_name = 'invitations/forms/_invite.html'
     form_class = InviteForm
@@ -278,16 +228,18 @@ class AcceptInvite(SingleObjectMixin, View):
 
         get_invitations_adapter().stash_verified_email(
             self.request, invitation.email)
-        if ProjectInvitation.objects.get(key=self.kwargs["key"].lower()):
-            return redirect(self.get_project_invite_signup_redirect())
-        else:
+        try:
+            if ProjectInvitation.objects.get(key=self.kwargs["key"].lower()):
+                return redirect(self.get_project_invite_signup_redirect())
+        except:
             return redirect(self.get_signup_redirect())
 
     def get_object(self, queryset=None):
         if queryset is None:
-            if ProjectInvitation.objects.get(key=self.kwargs["key"].lower()):
-                queryset = self.get_project_invite_queryset()
-            else:
+            try:
+                if ProjectInvitation.objects.get(key=self.kwargs["key"].lower()):
+                    queryset = self.get_project_invite_queryset()
+            except:
                 queryset = self.get_queryset()
         try:
             return queryset.get(key=self.kwargs["key"].lower())
