@@ -19,7 +19,7 @@ from project.models import Project, ProjectAccessLevels
 
 class ProjectInvitation(AbstractBaseInvitation):
 
-    email = models.EmailField(unique=True, verbose_name=_('e-mail address'),
+    email = models.EmailField(verbose_name=_('e-mail address'),
                               max_length=app_settings.EMAIL_MAX_LENGTH)
     created = models.DateTimeField(verbose_name=_('created'),
                                    default=timezone.now)
