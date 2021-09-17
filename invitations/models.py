@@ -27,6 +27,8 @@ class ProjectInvitation(AbstractBaseInvitation):
 
     access_level = models.ForeignKey(ProjectAccessLevels, on_delete=models.CASCADE, blank=True, null=True)
 
+    is_used = models.BooleanField(default=False)
+
     @classmethod
     def create(cls, email, inviter=None, **kwargs):
         key = get_random_string(64).lower()
